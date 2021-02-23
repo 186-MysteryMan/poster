@@ -1,14 +1,8 @@
 package com.angzk;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import javax.imageio.ImageIO;
 
@@ -30,48 +24,54 @@ public class GraphicsUtils {
      * @param logoPath      logo地址
      * @param backgroundUrl 背景模板地址
      * @param spuPicUrl     商品 主图
-     * @param memberPrice   会员价
      * @param price         原价
      * @param spuName       spuName
      */
     public static void createPosterByRedTemplate(String linkUrl, boolean logoStatus, String logoPath,
-                                                 String backgroundUrl, String spuPicUrl, String memberPrice, String price, String spuName) {
+                                                 String backgroundUrl, String spuPicUrl, String nickName,String text, String price, String spuName) {
 
         System.err.println("LOGO 地址 [logoPath] : " + logoPath);
         System.err.println("背景板 地址 [backgroundUrl] : " + backgroundUrl);
         System.err.println("商品图片 地址 [spuPicUrl] : " + spuPicUrl);
         // 生成二维码
-        BufferedImage qrCodeImage = QrCodeGraphicsUtils.createQrCode(linkUrl, false, logoStatus, logoPath, true, 160);
+        BufferedImage qrCodeImage = QrCodeGraphicsUtils.createQrCode(linkUrl, false, logoStatus, logoPath, true, 140);
 
         // 海报背景
         BufferedImage bufferImage = QrCodeBaseUtils.imageToBufferedImage(backgroundUrl);
-
         if (bufferImage != null) {
-            Graphics2D graphics = bufferImage.createGraphics();
-            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Graphics2D graphics;
+//            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             graphics = bufferImage.createGraphics();
             // 绘制 qrCode
-            graphics.drawImage(qrCodeImage, 437, 616, null);
+            graphics.drawImage(qrCodeImage, 230, 515, null);
 
             // 绘制 头像
-            graphics = QrCodeGraphicsUtils.drawAvatar(graphics, logoPath, bufferImage, 32, 714);
+            graphics = QrCodeGraphicsUtils.drawAvatar(graphics, logoPath, bufferImage, 13, 10);
 
             // 商品主图
             BufferedImage spuPicBufferImage = QrCodeBaseUtils.imageToBufferedImage(spuPicUrl);
             // 绘制商品主图
-            graphics.drawImage(spuPicBufferImage, 244, 249, null);
+            graphics.drawImage(spuPicBufferImage, 35, 112, null);
 
             // 文本
-            QrCodeGraphicsUtils.drawTextNewLine(graphics, spuName, 235, 132, 35, 346, Color.WHITE, 24, 2, 350);
+            QrCodeGraphicsUtils.drawTextNewLine(graphics, text, 33, 570, 20, 170, Color.BLACK, 13, 4, 60);
 
-            // 会员特价
-            Font font = new Font("微软雅黑", Font.PLAIN, 26);
-            graphics.setFont(font);
-            QrCodeGraphicsUtils.drawText(graphics, memberPrice, 232, 65, Color.WHITE);
-            // 原价
-            Font font2 = new Font("微软雅黑", Font.PLAIN, 22);
-            graphics.setFont(font2);
-            QrCodeGraphicsUtils.drawText(graphics, price, 232, 100, Color.WHITE);
+            // 昵称
+            Font font = new Font("微软雅黑", Font.PLAIN, 13);
+            graphics.setFont(msyhFont);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            QrCodeGraphicsUtils.drawText(graphics, nickName, 93, 38, Color.BLACK);
+            // 我推荐一个好物
+            Font font2 = new Font("思源黑体", Font.BOLD, 20);
+            graphics.setFont(msyhBoldFont);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            QrCodeGraphicsUtils.drawText(graphics, spuName, 93, 65, Color.WHITE);
+
+            // 价格
+            Font font3 = new Font("微软雅黑", Font.PLAIN, 16);
+            graphics.setFont(msyhFont);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            QrCodeGraphicsUtils.drawText(graphics, price, 33, 450,new Color(222, 96, 58));
 
             graphics.dispose();
 
@@ -80,16 +80,17 @@ public class GraphicsUtils {
             try {
                 os = new ByteArrayOutputStream();
                 ImageIO.write(bufferImage, "JPG", os);
-                QrCodeGraphicsUtils.savePic(bufferImage, 1, "jpg", 0.8, System.currentTimeMillis() + "");
+                QrCodeGraphicsUtils.savePic(bufferImage, 15, "png", 1, System.currentTimeMillis() + "");
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                if (os != null) {
-                    try {
+
+                try {
+                    if (os != null) {
                         os.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -109,5 +110,28 @@ public class GraphicsUtils {
             }
         }
         return path;
+    }
+
+    private static Font msyhFont;
+
+    private static Font msyhBoldFont;
+
+    static {
+        InputStream inputStream = null;
+        InputStream boldInputStream = null;
+        try {
+            inputStream = GraphicsUtils.class.getClassLoader().getResourceAsStream("font/苹方黑体-准-简.ttf");
+            boldInputStream = GraphicsUtils.class.getClassLoader().getResourceAsStream("font/苹方黑体-中黑-简.ttf");
+            if (inputStream != null && boldInputStream != null) {
+                msyhFont = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+                msyhFont = msyhFont.deriveFont(Font.PLAIN,20);
+                msyhBoldFont = Font.createFont(Font.TRUETYPE_FONT, boldInputStream);
+                msyhBoldFont = msyhBoldFont.deriveFont(Font.BOLD,20);
+            }
+        } catch (FontFormatException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            CloseStreamUtil.close(boldInputStream,inputStream,"字体异常");
+        }
     }
 }

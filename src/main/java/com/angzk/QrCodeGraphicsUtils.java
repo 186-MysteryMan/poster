@@ -234,7 +234,7 @@ public final class QrCodeGraphicsUtils {
      * 保存图片
      *
      * @param bufferImage   画布对象
-     * @param scale         缩放 (0.0~1.0)
+     * @param scale         缩放 (1及以上)
      * @param outFormat     输出格式(PNG JPG)
      * @param outPutQuality 输出品质(0.0d ~ 1.0d)
      * @param pngPath       输出路径
@@ -243,7 +243,7 @@ public final class QrCodeGraphicsUtils {
                                String pngPath) {
         try {
             if (StringUtils.isNotBlank(pngPath) && bufferImage != null) {
-                File file = new File(pngPath);
+                File file = new File("d:/bing");
                 // Google 工具包 输出文件
                 Thumbnails.of(bufferImage).scale(scale).outputFormat(outFormat).outputQuality(outPutQuality)
                         .toFile(file);
